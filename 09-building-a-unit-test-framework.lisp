@@ -16,11 +16,11 @@
 (defmacro check (&body forms)
   "Run each expression in 'forms' as a test case."
   `(combine-results
-     ,@(loop for f in forms collect `(report-result ,f ',f))))
+     ,@(loop for f in forms collect `(report-result ',f ',f))))
 
-(defun report-result (result form)
+(defmacro report-result (result form)
   "Report the results of a single test case. Called by 'check'."
-  (format t "~:[FAIL~;pass~] ... ~a~%" result form)
+  `(format t "~:[FAIL~;pass~] ... ~a~%" ,result ,form)
   result)
 
 (defmacro deftest (name parameters &body body)
@@ -41,9 +41,16 @@
     (= (* 2 2) 4)
     (= (* 3 -5) -15)))
 
+(defun test-arithmetic ()
+  (combine-results
+    (test-+)
+    (test-*)))
+
 (deftest test-math ()
   (test-arithmetic))
 
 (if (test-math)
     (format t "ok~%")
     (format t "fail~%"))
+
+(macroexpand '(check (= (+ 1 2) 3)))
