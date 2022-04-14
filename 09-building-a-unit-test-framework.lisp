@@ -7,7 +7,7 @@
      ,@body))
 
 (defmacro combine-results (&body forms)
-  "combine the results (as booleans) of evaluating 'forms' in order."
+  "Combine the results (as booleans) of evaluating 'forms' in order."
   (with-gensyms (result)
     `(let ((,result t))
        ,@(loop for f in forms collect `(unless ,f (setf ,result nil)))
@@ -16,23 +16,23 @@
 (defmacro check (&body forms)
   "Run each expression in 'forms' as a test case."
   `(combine-results
-     ,@(loop for f in forms collect `(report-result ',f ',f))))
+     ,@(loop for f in forms collect `(report-result ,f ',f))))
 
-(defmacro report-result (result form)
+(defun report-result (result form)
   "Report the results of a single test case. Called by 'check'."
-  `(format t "~:[FAIL~;pass~] ... ~a~%" ,result ,form)
+  (format t "~:[FAIL~;pass~] ... ~a: ~a~%" result *test-name* form)
   result)
 
 (defmacro deftest (name parameters &body body)
-  "Define a test function. Within a test function we can all other test
+  "Define a test function.  Within a test function we can all other test
    functions or use 'check' to run individual test cases."
   `(defun ,name ,parameters
-     (let ((*test-name* ',name))
+     (let ((*test-name* (append *test-name* (list ',name))))
        ,@body)))
 
 (defun test-+ ()
   (check
-    (= (+ 1 2) 3)
+    (= (+ 2 1) 3)
     (= (+ 1 2 3) 6)
     (= (+ -1 -2) -3)))
 
@@ -52,5 +52,3 @@
 (if (test-math)
     (format t "ok~%")
     (format t "fail~%"))
-
-(macroexpand '(check (= (+ 1 2) 3)))
